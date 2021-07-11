@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!--
+        https://github.com/BTMorton/dnd-5e-srd/tree/master/json
+
+    -->
+</head>
+<link rel="stylesheet" href="style.css">
+<script src="names.js"></script>
+<script src="places.js"></script>
+<script src="addMath.js"></script>
+<script src="lookup.js"></script>
+<script src="addmonsters.js"></script>
+<script src="addNpcs.js"></script>
+<script src="addEquipment.js"></script>
+<script src="lootTable.js"></script>
+<script src="categorizeMonsters.js"></script>
+<script src="encounterGrid.js"></script>
+<script src="actions.js"></script>
+<script src="init.js"></script>
+
+<body>
+    <div id="head">
+        <button onclick="show('inhabitants')">Encounter</button>
+        <button onclick="show('loot')">Loot</button>
+        <button onclick="show('world')">World</button>
+    </div>
+    <div id="inhabitants" class="main"></div>
+    <div id="loot" class="main"></div>
+    <div id="world" class="main"></div>
+    <div id="foot"></div>
+</body>
+
+</html>

@@ -76,9 +76,6 @@ function extractMagicItemToTable(item, name) {
             lootTable[rarityIndex].push({name: name, rarity: rarity, info: item});
         }
     }
-    if (!raritiesParsed.length) {
-        console.log(name, item);
-    }
 }
 
 function extractToLootTable(table) {

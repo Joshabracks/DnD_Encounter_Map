@@ -22,7 +22,18 @@ const difficultyLookupTable = {
 }
 
 function getEncounter(x, y, playerLevels, getRes) {
-    // console.log("getting: " + x + ", " + y)
+    if (state && state[x + ',' + y]) {
+        var s = state[x + ',' + y]
+        console.log("STATE LOAD ", s)
+        loadInhabitants(s.inhabitants);
+        loadLoot(s.loot);
+        updateFooter(s);
+
+        if (s.inhabitants.length == 0 || s.safe) {
+            document.querySelector('[x="' + x + '"][y="' + y + '"]').style.backgroundColor = '#0f0';
+        }
+        return;
+    }
     var _x = Number(x);
     var _y = Number(y);
 
@@ -42,7 +53,6 @@ function getEncounter(x, y, playerLevels, getRes) {
     }
     var difficulty = Math.floor(lerp(0, difficultyLookupTable[level] && difficultyLookupTable[level].length || 0, b));
 
-    // console.log(level, difficulty)
     var expLevel = difficultyLookupTable[level][difficulty];
 
     var inhabitants = [];
@@ -57,13 +67,11 @@ function getEncounter(x, y, playerLevels, getRes) {
 
     var monsterOrNpc = perlin.get(x * 0.85, y * 0.85);
 
-    // console.log("prewhile")
 
     var reset = 0;
 
     while (expendedXP < expLevel * 0.9 && reset < 100) {
         // var monsterLevelIndex = Math.floor(lerp(level - 2 > 0 && level - 2 || 0, level, d));
-        // console.log("Monster Level Index: " + monsterLevelIndex)
         // if (dnd.monsters[monsterLevelIndex]) {
         //     var monsterIndex = Math.floor(lerp(0, dnd.monsters[monsterLevelIndex].length - 1, c))
         //     var monster = dnd.monsters[monsterLevelIndex][monsterIndex];
@@ -129,9 +137,9 @@ function getEncounter(x, y, playerLevels, getRes) {
                 reset++;
                 continue;
             }
-            var firstName = firstNames[Math.floor(lerp(0, firstNames.length - 1, Math.abs(perlin.get(x * cSet + .0112 , y * cSet + 0.01564))))]
-            var lastName = lastNames[Math.floor(lerp(0, lastNames.length - 1, Math.abs(perlin.get(x * cSet + .41233112 , y * cSet + 0.71564))))]
-            var race = dnd.races[Math.floor(lerp(0, dnd.races.length - 1, Math.abs(perlin.get(x * cSet + .41112 , y * cSet + 0.5484))))].name
+            var firstName = firstNames[Math.floor(lerp(0, firstNames.length - 1, Math.abs(perlin.get(x * cSet + .0112, y * cSet + 0.01564))))]
+            var lastName = lastNames[Math.floor(lerp(0, lastNames.length - 1, Math.abs(perlin.get(x * cSet + .41233112, y * cSet + 0.71564))))]
+            var race = dnd.races[Math.floor(lerp(0, dnd.races.length - 1, Math.abs(perlin.get(x * cSet + .41112, y * cSet + 0.5484))))].name
             npc.race = race;
             npc.identity = firstName + " " + lastName;
             inhabitants.push(npc);
@@ -143,7 +151,6 @@ function getEncounter(x, y, playerLevels, getRes) {
         }
         // var d = perlin.get(x * dSet, y * dSet) + 1 / 2; d = perlin.get(x * dSet, y * dSet) + 1 / 2;
     }
-    // console.log('afterwhile')
     lootVal = Math.abs(perlin.get(x * 0.131234, y * -1.21548));
     lootLevel = Math.floor(lerp(0, 1000, lootVal));
     lootIndex = Math.floor(lerp(0, lootTable.length, lootVal));
@@ -162,18 +169,48 @@ function getEncounter(x, y, playerLevels, getRes) {
     var food = Math.floor(lerp(0, 100, Math.abs(perlin.get(x * .02365, y * 1.2486))));
     var gold = lerp(0, 250, Math.abs(perlin.get(x * 1.248, y * .46112))).toFixed(2);
     var place = places[Math.floor(lerp(0, places.length - 1, Math.abs(perlin.get(x * .515054, y * .041556))))];
-    var res = { inhabitants: inhabitants, xp: expendedXP, food: food, gold: gold, loot: loot };
+    var res = { inhabitants: inhabitants, xp: expendedXP, food: food, gold: gold, loot: loot, place: place, coordinates: { x: _x, y: _y } };
     if (getRes) {
         return res;
     }
-    html = ''
+    loadInhabitants(inhabitants);
+    loadLoot(loot);
+    updateFooter(res);
+
+    state[_x + ',' + _y] = res;
+}
+
+function updateFooter(res) {
+    document.getElementById('foot').innerHTML = "<p><b>[" + res.coordinates.x + ',' + res.coordinates.y + '] </b>' + res.place + "</p><p><b>food: </b>" + res.food + "</p><p><b>gold: </b>" + res.gold + "</p><p><b>xp: </b>" + res.xp + "</p>"
+}
+
+function loadState(x, y, getRes) {
+    var key = x + ',' + y;
+    var state = saveState && saveState[key]
+    if (!state) {
+        return;
+    }
+    if (getRes) {
+        return state;
+    }
+    loadInhabitants(state.inhabitants)
+    loadLoot(state.loot)
+    updateFooter(state)
+}
+
+function saveState(state) {
+    var key = state.coordinates.x + ',' + state.coordinates.y
+    saveState[key] = state;
+    save();
+}
+
+function loadInhabitants(inhabitants) {
+    var html = ''
     for (var i = 0; i < inhabitants.length; i++) {
         var inhabitant = inhabitants[i];
-        // console.log(inhabitant);
         var currhtml = '';
         for (var item in inhabitant) {
             var name;
-            // console.log(item, inhabitant[item])
             if (item == 'name') {
                 name = item;
             } else if (item == 'img_url') {
@@ -194,8 +231,12 @@ function getEncounter(x, y, playerLevels, getRes) {
         currhtml = "<div style='outline-style: solid; outline-width: 2; outline-color: black;'>" + currhtml + "</div>"
         html += currhtml
     }
-
     document.getElementById('inhabitants').innerHTML = html;
+
+    
+}
+
+function loadLoot(loot) {
     html = '';
     for (var i = 0; i < loot.length; i++) {
         var currhtml = '';
@@ -216,7 +257,4 @@ function getEncounter(x, y, playerLevels, getRes) {
     }
 
     document.getElementById('loot').innerHTML = html;
-
-    document.getElementById('foot').innerHTML = "<p><b>[" + _x + ',' + _y + '] </b>' + place + "</p><p><b>food: </b>" + food + "</p><p><b>gold: </b>" + gold + "</p><p><b>xp: </b>" + xp + "</p>"
-    
 }
